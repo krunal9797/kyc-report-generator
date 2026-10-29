@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NOTICE UNDER SECTION 94 OF B.N.S.S 2023</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    body {
+      background-color: #f1f5f9;
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      padding: 20px;
+      color: #000;
+    }
+
+    /* Screen Action Bar */
+    .action-bar {
+      max-width: 210mm;
+      margin: 0 auto 20px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    }
+
+    .btn {
+      padding: 8px 18px;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-back { background: #64748b; color: white; }
+    .btn-print { background: #0284c7; color: white; }
+    .btn:hover { opacity: 0.9; }
+
+    /* Single A4 Page Container */
+    .a4-container {
+      background: white;
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto 30px auto;
+      padding: 18mm 20mm;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+      position: relative;
+      box-sizing: border-box;
+    }
+
+    /* Exact Original Header Box */
+    .header-box {
+      border: 3px solid #000;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .header-logo {
+      height: 85px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .header-center {
+      text-align: center;
+      flex: 1;
+      padding: 0 10px;
+    }
+
+    .header-center h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      color: #000;
+      text-transform: uppercase;
+    }
+
+    .header-center .sub-dist {
+      margin: 4px 0 2px 0;
+      font-size: 14px;
+      font-weight: bold;
+      letter-spacing: 0.3px;
+    }
+
+    .header-center .tel-no {
+      margin: 2px 0;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .header-center .email-line {
+      margin: 2px 0 0 0;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    /* Section Title */
+    .section-title {
+      text-align: center;
+      font-size: 15px;
+      font-weight: bold;
+      text-decoration: underline;
+      margin: 15px 0 18px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    /* Outward Details */
+    .outward-details {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 15px;
+      font-size: 13.5px;
+      line-height: 1.5;
+    }
+
+    /* Recipient Details */
+    .to-box {
+      font-size: 13.5px;
+      margin-bottom: 15px;
+      line-height: 1.45;
+    }
+
+    /* Subject */
+    .subject {
+      text-align: center;
+      font-size: 14px;
+      font-weight: bold;
+      margin: 15px 0 15px 0;
+    }
+
+    /* Letter Body */
+    .letter-body {
+      font-size: 13.5px;
+      line-height: 1.6;
+      text-align: justify;
+      margin-bottom: 12px;
+    }
+
+    .letter-body p {
+      margin: 8px 0;
+    }
+
+    /* Account Table */
+    .account-table {
+      margin: 16px 0 14px 0;
+      width: 100%;
+    }
+
+    .account-table table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+
+    .account-table th, .account-table td {
+      border: 1.5px solid #000 !important;
+      padding: 7px 8px;
+      text-align: center;
+    }
+
+    .account-table th {
+      background-color: transparent !important;
+      font-weight: bold;
+    }
+
+    /* Instruction Block */
+    .instruction-block {
+      font-size: 13px;
+      line-height: 1.5;
+      margin-top: 10px;
+    }
+
+    .instruction-list {
+      margin: 8px 0 12px 0;
+      padding-left: 20px;
+      font-weight: bold;
+    }
+
+    .instruction-list li {
+      margin-bottom: 4px;
+    }
+
+    /* Signature - Bottom Right */
+    .signature-container {
+      margin-top: 40px;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: flex-end;
+      text-align: center;
+      font-size: 13.5px;
+      line-height: 1.35;
+      font-weight: bold;
+    }
+
+    /* Print Setup */
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
+
+    @media print {
+      body {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .a4-container {
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 6mm 10mm !important;
+        width: 100% !important;
+        min-height: auto !important;
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+      tr {
+        page-break-inside: avoid !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Action Bar -->
+  <div class="action-bar no-print">
+    <div>
+      <button onclick="window.close()" class="btn btn-back">
+        <i class="fa-solid fa-arrow-left"></i> Pacha Jao
+      </button>
+      <span id="noticeCountBadge" style="margin-left: 14px; font-weight: bold; font-size: 13.5px; color: #334155;"></span>
+    </div>
+
+    <button onclick="window.print()" class="btn btn-print">
+      <i class="fa-solid fa-print"></i> Print / PDF Download
+    </button>
+  </div>
+
+  <div id="noticesContainer"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const formattedDate = `${day}/${month}/${now.getFullYear()}`;
+      const currentYear = now.getFullYear();
+
+      const rawData = localStorage.getItem('cyberFraudPrintData');
+      if (!rawData) {
+        alert("Data malyo nathi! Krupya main page par thi PDF upload kari ne fari Generate PDF per click karo.");
+        return;
+      }
+
+      let caseData;
+      try {
+        caseData = JSON.parse(rawData);
+      } catch (err) {
+        console.error("JSON Parse Error:", err);
+        return;
+      }
+
+      const ackNo = caseData.ackNo || '31110260242957';
+      const victimName = (caseData.victimName && caseData.victimName !== '-') ? caseData.victimName.toUpperCase() : 'GULFAM SHAID PATHAN';
+      const transfers = caseData.transfers || [];
+      const container = document.getElementById('noticesContainer');
+
+      if (transfers.length === 0) {
+        container.innerHTML = `<div class="a4-container" style="text-align: center; padding: 50px;">
+          <h3>Koi transaction ke bank account record malya nathi.</h3>
+        </div>`;
+        return;
+      }
+
+      // Grouping: 1 Page = 1 Bank Account
+      const distinctAccounts = {};
+
+      transfers.forEach(item => {
+        let rawBank = item.bank || "Bank / FIs";
+        let cleanBank = rawBank.replace(/\s*\(\s*Layer\s*:\s*\d+\s*\)/gi, '').trim();
+        if (!cleanBank) cleanBank = "Concerned Bank / Financial Institution";
+
+        const accNumber = item.accNo || '-';
+        const uniqueKey = `${cleanBank}__${accNumber}`;
+
+        if (!distinctAccounts[uniqueKey]) {
+          distinctAccounts[uniqueKey] = {
+            bank: cleanBank,
+            accNo: accNumber,
+            ifsc: item.ifsc || '-',
+            holder: item.holder || '',
+            utrs: new Set()
+          };
+        }
+        if (item.utr && item.utr !== '-') {
+          distinctAccounts[uniqueKey].utrs.add(item.utr);
+        }
+      });
+
+      const accountsList = Object.values(distinctAccounts);
+      document.getElementById('noticeCountBadge').innerText = `Kul ${accountsList.length} notice taiyar thai (1 Page = 1 Account)`;
+
+      let allNoticesHtml = '';
+
+      accountsList.forEach(singleAcc => {
+        const utrString = Array.from(singleAcc.utrs).join(', ') || '-';
+
+        allNoticesHtml += `
+          <div class="a4-container">
+            
+            <!-- Header Box (Original Moti Size) -->
+            <div class="header-box">
+              <img src="gp_logo.png" class="header-logo" alt="Police Logo" onerror="this.src='images/gp_logo.png';">
+              <div class="header-center">
+                <h1>SONGADH POLICE STATION</h1>
+                <div class="sub-dist">DIST-TAPI-SONGADH</div>
+                <div class="tel-no">Tel. no. 02624-222033</div>
+                <div class="email-line">E-mail ID: polstn-son-tapi@gujarat.gov.in</div>
+              </div>
+              <img src="gp_logo.png" class="header-logo" alt="Police Logo" onerror="this.src='images/gp_logo.png';">
+            </div>
+
+            <!-- Title -->
+            <div class="section-title">
+              NOTICE UNDER SECTION 94 OF B.N.S.S 2023
+            </div>
+
+            <!-- Outward Details -->
+            <div class="outward-details">
+              <div>
+                <b>Outward number</b> ____________/<b>${currentYear}</b>,<br>
+                <b>Date-</b>${formattedDate}
+              </div>
+            </div>
+
+            <!-- Recipient Bank -->
+            <div class="to-box">
+              <b>To,</b><br>
+              <b>Nodal officer/The Manager</b><br>
+              <b>${singleAcc.bank}</b>
+            </div>
+
+            <!-- Subject -->
+            <div class="subject">
+              Subject: Request for KYC and Transaction Details of Fraudulent Account
+            </div>
+
+            <!-- Letter Body -->
+            <div class="letter-body">
+              <p><b>Dear Sir/Madam,</b></p>
+              <p style="text-indent: 35px;">
+                I, <b>K.D.SHARMA, POLICE INSPECTOR, SONGADH POLICE STATION</b>, am currently investigating a case related to 
+                <b>Acknowledgement No. ${ackNo}</b>, filed by the complainant <b>${victimName}</b>. The complaint involves a 
+                <b>fraudulent financial scam</b>, where the accused are engaged in <b>money fraud, fake transactions, and deceptive financial activities.</b>
+              </p>
+              <p style="text-indent: 35px;">
+                As per our investigation, I formally request you to provide detailed information regarding the account(s) involved in the fraudulent transactions related to this case.
+              </p>
+            </div>
+
+            <!-- Table: 1 Single Account -->
+            <div class="account-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 28%;">Account Number</th>
+                    <th style="width: 22%;">IFSC Code</th>
+                    <th style="width: 25%;">Account Holder Name</th>
+                    <th style="width: 25%;">Transaction ID</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="font-weight: bold; font-family: Arial, sans-serif;">${singleAcc.accNo}</td>
+                    <td style="font-weight: bold; font-family: Arial, sans-serif;">${singleAcc.ifsc}</td>
+                    <td style="font-family: Arial, sans-serif;">${singleAcc.holder}</td>
+                    <td style="font-weight: bold; font-family: Arial, sans-serif; word-break: break-all;">${utrString}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Instruction Block -->
+            <div class="instruction-block">
+              Hence, as powers given in <b>BNSS 2023, Section 94</b> you are instructed that:
+              <ol class="instruction-list">
+                <li>Account Opening Form (AOF) and complete KYC details of the above-mentioned account.</li>
+                <li>Complete bank statement of the account from the date of opening till date.</li>
+                <li>Registered contact number and email ID of the account holder.</li>
+                <li>IP data records and device details related to transactions of the above-mentioned account.</li>
+              </ol>
+              <p>
+                So,You are hereby requested to provide the requested details at the earliest. The information may kindly be shared through the official email at <b>polstn-son-tapi@gujarat.gov.in</b>.
+              </p>
+              <p style="margin-top: 14px;"><b>Thank You.</b></p>
+            </div>
+
+            <!-- Signature Block: Right Side Positioned -->
+            <div class="signature-container">
+              <div>
+                (K.D.SHARMA)<br>
+                POLICE INSPECTOR<br>
+                SONGADH POLICE STATION<br>
+                DIST-TAPI-SONGADH<br>
+                +916359626151
+              </div>
+            </div>
+
+          </div>
+        `;
+      });
+
+      container.innerHTML = allNoticesHtml;
+    });
+  </script>
+</body>
+</html>

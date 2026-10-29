@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyber Fraud PDF Data Extractor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Direct Script Loading: worker tag prevents CORS/file:// protocol crashes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    @media print {
+      body { background: white !important; padding: 0 !important; }
+      .no-print { display: none !important; }
+      .shadow-sm, .shadow-md { box-shadow: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen p-4 md:p-8">
+
+  <div class="max-w-7xl mx-auto space-y-6">
+    
+    <!-- Header -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-shield-halved text-blue-600"></i> Cyber Fraud PDF Extractor
+        </h1>
+        <p class="text-sm text-slate-500 mt-1">1930 Cyber Crime Portal - Money Transfer to Details Extractor</p>
+      </div>
+
+      <div class="flex items-center gap-3 no-print">
+        <label class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-xl shadow-sm flex items-center gap-2 transition duration-200">
+          <i class="fa-solid fa-file-pdf"></i> Upload PDF
+          <input type="file" id="pdfFileInput" accept=".pdf,application/pdf" class="hidden">
+        </label>
+        <button onclick="resetAllData()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium px-4 py-2.5 rounded-xl flex items-center gap-2 transition duration-200">
+          <i class="fa-solid fa-rotate-left"></i> Reset
+        </button>
+      </div>
+    </div>
+
+    <!-- Error Box -->
+    <div id="errorBox" class="hidden bg-red-50 border border-red-300 text-red-700 p-4 rounded-xl text-sm no-print">
+      <div class="font-bold flex items-center gap-2 mb-1">
+        <i class="fa-solid fa-triangle-exclamation text-red-600"></i> ભૂલ (Error):
+      </div>
+      <div id="errorMessage"></div>
+    </div>
+
+    <!-- Loading Bar -->
+    <div id="loadingBox" class="hidden bg-blue-50 border border-blue-200 rounded-2xl p-6 transition duration-300 no-print">
+      <div class="flex items-center justify-between mb-2">
+        <span id="loadingStatusText" class="text-sm font-semibold text-blue-800 flex items-center gap-2">
+          <i class="fa-solid fa-circle-notch fa-spin text-blue-600"></i> PDF load thai rahi chhe...
+        </span>
+        <span id="loadingPercent" class="text-sm font-bold text-blue-800">0%</span>
+      </div>
+      <div class="w-full bg-blue-200 rounded-full h-2.5 overflow-hidden">
+        <div id="loadingBar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Summary Details -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Acknowledgement No</span>
+        <div id="ackNo" class="text-lg font-bold text-slate-800 mt-1 font-mono truncate">-</div>
+      </div>
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Complainant Name</span>
+        <div id="victimName" class="text-lg font-bold text-slate-800 mt-1 truncate">-</div>
+      </div>
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Mobile Number</span>
+        <div id="victimMobile" class="text-lg font-bold text-blue-600 mt-1 font-mono truncate">-</div>
+      </div>
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Category / Sub Category</span>
+        <div id="categoryDesc" class="text-sm font-semibold text-slate-700 mt-1 truncate">-</div>
+      </div>
+    </div>
+
+    <!-- Amounts -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 p-5 rounded-xl shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold text-red-600 uppercase tracking-wider">Total Fraudulent Amount</p>
+          <h2 id="totalFraudAmount" class="text-2xl font-black text-red-700 mt-1">₹ 0.00</h2>
+        </div>
+        <div class="bg-red-200 text-red-700 w-12 h-12 rounded-xl flex items-center justify-center text-xl">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+      </div>
+      <div class="bg-gradient-to-r from-emerald-50 to-emerald-100 border border-emerald-200 p-5 rounded-xl shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Total Lien Amount (Hold)</p>
+          <h2 id="totalLienAmount" class="text-2xl font-black text-emerald-700 mt-1">₹ 0.00</h2>
+        </div>
+        <div class="bg-emerald-200 text-emerald-700 w-12 h-12 rounded-xl flex items-center justify-center text-xl">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Beneficiary Money Transfer to Table -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-money-bill-transfer text-indigo-600"></i> Money Transfer to Details
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">Suspect Account Trail (Bank / FIs, Account No, IFSC Code, UTR, Date & Disputed Amount)</p>
+        </div>
+        <div id="recordCount" class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 self-start sm:self-auto">
+          0 Records Found
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wider">
+              <th class="py-3.5 px-4">#</th>
+              <th class="py-3.5 px-4 min-w-[200px]">Bank / FIs</th>
+              <th class="py-3.5 px-4 min-w-[170px]">Account No.</th>
+              <th class="py-3.5 px-4 min-w-[140px]">IFSC Code</th>
+              <th class="py-3.5 px-4 min-w-[150px]">Transaction ID / UTR</th>
+              <th class="py-3.5 px-4 min-w-[160px]">Transaction Date & Time</th>
+              <th class="py-3.5 px-4 text-right min-w-[130px]">Disputed Amount</th>
+            </tr>
+          </thead>
+          <tbody id="transferTableBody" class="divide-y divide-slate-200 text-slate-700">
+            <tr>
+              <td colspan="7" class="py-12 text-center text-slate-400">
+                <i class="fa-regular fa-folder-open text-3xl mb-2 block"></i>
+                Koi data nathi. Krupya PDF upload karo.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 no-print">
+        <div class="text-xs text-slate-500">
+          <i class="fa-solid fa-circle-info mr-1"></i> Data check kari ne PDF generate / print karva mate niche nu button dabavo.
+        </div>
+		<button onclick="goToViewPage()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-sm flex items-center justify-center gap-2 transition duration-200">
+  <i class="fa-solid fa-file-pdf"></i> Generate PDF
+</button>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const RBI_IFSC_BANKS = {
+      "IPOS": "India Post Payments Bank",
+      "SBIN": "State Bank of India",
+      "HDFC": "HDFC Bank",
+      "BARB": "Bank of Baroda",
+      "YESB": "Yes Bank",
+      "AUBL": "AU Small Finance Bank",
+      "INDB": "IndusInd Bank",
+      "IOBA": "Indian Overseas Bank",
+      "UTIB": "Axis Bank",
+      "ICIC": "ICICI Bank",
+      "PUNB": "Punjab National Bank",
+      "KKBK": "Kotak Mahindra Bank",
+      "UBIN": "Union Bank of India",
+      "CNRB": "Canara Bank",
+      "CBIN": "Central Bank of India",
+      "BKID": "Bank of India",
+      "MAHB": "Bank of Maharashtra",
+      "IDIB": "Indian Bank",
+      "UCOB": "UCO Bank",
+      "PSIC": "Punjab & Sind Bank",
+      "AIRP": "Airtel Payments Bank",
+      "PYTM": "Paytm Payments Bank",
+      "FDOM": "Fino Payments Bank",
+      "JAKA": "Jammu & Kashmir Bank",
+      "KVBL": "Karur Vysya Bank",
+      "SIBL": "South Indian Bank",
+      "FDRL": "Federal Bank",
+      "IDFB": "IDFC FIRST Bank",
+      "RBLN": "RBL Bank",
+      "BDBL": "Bandhan Bank",
+      "CSBK": "CSB Bank",
+      "DCBL": "DCB Bank",
+      "TMBL": "Tamilnad Mercantile Bank"
+    };
+
+    function updateProgress(percent, text) {
+      const box = document.getElementById('loadingBox');
+      const bar = document.getElementById('loadingBar');
+      const pText = document.getElementById('loadingPercent');
+      const sText = document.getElementById('loadingStatusText');
+
+      box.classList.remove('hidden');
+      bar.style.width = percent + '%';
+      pText.innerText = percent + '%';
+      if (text) {
+        sText.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-blue-600"></i> ` + text;
+      }
+
+      if (percent >= 100) {
+        setTimeout(() => { box.classList.add('hidden'); }, 600);
+      }
+    }
+
+    function showError(msg) {
+      const eBox = document.getElementById('errorBox');
+      const eMsg = document.getElementById('errorMessage');
+      eBox.classList.remove('hidden');
+      eMsg.innerHTML = msg;
+      document.getElementById('loadingBox').classList.add('hidden');
+    }
+
+    // Direct event listener
+    document.getElementById('pdfFileInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      document.getElementById('errorBox').classList.add('hidden');
+      updateProgress(10, "PDF file load thai rahi chhe...");
+
+      const reader = new FileReader();
+
+      reader.onload = async function() {
+        try {
+          updateProgress(30, "PDF pages read kari rahyu chhe...");
+          const typedarray = new Uint8Array(this.result);
+
+          const loadingTask = pdfjsLib.getDocument({
+            data: typedarray,
+            cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/cmaps/',
+            cMapPacked: true
+          });
+
+          const pdf = await loadingTask.promise;
+          const totalPages = pdf.numPages;
+          let fullRawText = "";
+
+          for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            const textContent = await page.getTextContent();
+            
+            const items = textContent.items;
+            items.sort((a, b) => b.transform[5] - a.transform[5] || a.transform[4] - b.transform[4]);
+
+            let lastY = null;
+            let pageString = "";
+            for (let item of items) {
+              if (lastY !== null && Math.abs(item.transform[5] - lastY) > 4) {
+                pageString += "\n";
+              } else if (lastY !== null) {
+                pageString += " ";
+              }
+              pageString += item.str;
+              lastY = item.transform[5];
+            }
+            fullRawText += pageString + "\n";
+
+            const currentPercent = 30 + Math.round((pageNum / totalPages) * 50);
+            updateProgress(currentPercent, `Page ${pageNum} of ${totalPages} process thayu...`);
+          }
+
+          updateProgress(85, "Money Transfer details extract thai rahi chhe...");
+          parseComplaintReport(fullRawText);
+          updateProgress(100, "Done!");
+        } catch (err) {
+          console.error("PDF Parsing Error:", err);
+          showError("PDF વાંચવામાં ભૂલ આવી: " + err.message);
+        }
+      };
+
+      reader.onerror = function() {
+        showError("ફાઇલ રીડ કરવામાં નિષ્ફળ રહી (FileReader Error).");
+      };
+
+      reader.readAsArrayBuffer(file);
+    });
+
+    function parseComplaintReport(text) {
+      const ack = text.match(/Acknowledgement\s*No\.?\s*[:\-]?\s*(\d+)/i);
+      const cat = text.match(/Category\s*of\s*Complaint\s*[:\-]?\s*([^\\n\\r]+)/i);
+      const subCat = text.match(/Sub\s*Category\s*of\s*Complaint\s*[:\-]?\s*([^\\n\\r]+)/i);
+      const name = text.match(/Name\s*[:\-]?\s*([A-Za-z\s]+?)(?:\\n|Gender|DOB|Date|Father)/i);
+      const mobile = text.match(/Mobile\s*[:\-]?\s*(\d{10})/i);
+
+      const fraudAmt = text.match(/Total\s*Fraudulent\s*Amount[^\d]*([\d,]+\.?\d*)/i);
+      const lienAmt = text.match(/Total\s*Lien\s*Amount[^\d]*([\d,]+\.?\d*)/i);
+
+      document.getElementById('ackNo').innerText = ack ? ack[1].trim() : '-';
+      document.getElementById('victimName').innerText = name ? name[1].trim() : '-';
+      document.getElementById('victimMobile').innerText = mobile ? mobile[1].trim() : '-';
+
+      const c = cat ? cat[1].trim() : '';
+      const sc = subCat ? subCat[1].trim() : '';
+      document.getElementById('categoryDesc').innerText = (c || sc) ? `${c} / ${sc}` : '-';
+
+      document.getElementById('totalFraudAmount').innerText = fraudAmt ? `₹ ${fraudAmt[1]}` : '₹ 0.00';
+      document.getElementById('totalLienAmount').innerText = lienAmt ? `₹ ${lienAmt[1]}` : '₹ 0.00';
+
+      extractMoneyTransferTrail(text);
+    }
+
+    function extractMoneyTransferTrail(fullText) {
+      const rows = [];
+
+      let cleanText = fullText.replace(/(\d{7,15})\s+[A-Za-z\s]{1,15}\s+(\d{2,6})/g, '$1$2');
+
+      const layerRegex = /Layer\s*:\s*(\d+)/gi;
+      const layerMatches = [...cleanText.matchAll(layerRegex)];
+
+      let idx = 1;
+      let seenKeys = new Set();
+
+      for (let lm of layerMatches) {
+        const layerStr = ` (Layer: ${lm[1]})`;
+        const pos = lm.index;
+
+        const windowText = cleanText.substring(Math.max(0, pos - 280), Math.min(cleanText.length, pos + 320));
+
+        let ifsc = "-";
+        const ifscMatch = windowText.match(/\b([A-Z]{4}0[A-Z0-9]{6}|[A-Za-z0-9]+UPI)\b/);
+        if (ifscMatch) {
+          ifsc = ifscMatch[1].trim();
+        }
+
+        let bankName = "";
+        if (ifsc !== "-") {
+          const prefix = ifsc.substring(0, 4).toUpperCase();
+          if (RBI_IFSC_BANKS[prefix]) {
+            bankName = RBI_IFSC_BANKS[prefix];
+          } else if (/PAYTM|PYTM/i.test(ifsc)) {
+            bankName = "Paytm Payments Bank";
+          } else if (/YESB/i.test(ifsc)) {
+            bankName = "Yes Bank";
+          } else if (/HDFC/i.test(ifsc)) {
+            bankName = "HDFC Bank";
+          } else if (/BARB/i.test(ifsc)) {
+            bankName = "Bank of Baroda";
+          } else if (/SBIN/i.test(ifsc)) {
+            bankName = "State Bank of India";
+          }
+        }
+
+        if (!bankName) {
+          const bMatch = windowText.match(/([A-Za-z\s\.\&]+?(?:Bank|Payments|Paytm|FIs|Financial))/i);
+          if (bMatch) {
+            bankName = bMatch[1].replace(/(?:THE\s*SURAT\s*DISTRICT[^\\n]*|Bank\s*\/FIs|Account\s*No|Date\s*of\s*Action)/gi, '').trim();
+          }
+        }
+        if (!bankName) bankName = "Bank / FIs";
+        const fullBank = bankName + layerStr;
+
+        let accNo = "-";
+        const accMatches = [...windowText.matchAll(/\b(\d{10,22})\b/g)];
+        for (let am of accMatches) {
+          const num = am[1];
+          if (accNo === "-") {
+            accNo = num;
+          } else if (num.length >= 10 && num.length <= 18) {
+            accNo = num;
+          }
+        }
+
+        let utr = "-";
+        const utrMatches = [...windowText.matchAll(/\b(\d{12})\b/g)];
+        if (utrMatches.length > 0) {
+          utr = utrMatches[utrMatches.length - 1][1];
+          for (let um of utrMatches) {
+            if (um[1] !== accNo) {
+              utr = um[1];
+              break;
+            }
+          }
+        }
+
+        let txDate = "-";
+        const dateMatches = [...windowText.matchAll(/(\d{2}\/\d{2}\/\d{4}[\d\s:]*(?:AM|PM)?)/gi)];
+        if (dateMatches.length > 0) {
+          txDate = dateMatches[0][1].replace(/\s+/g, ' ').trim();
+        }
+
+        let disputedAmt = "-";
+        const amtMatches = [...windowText.matchAll(/(\d{1,3}(?:[.,]\d{3})*(?:\.\d{2})|\d+(?:\\.\d{2}))/g)];
+        if (amtMatches.length >= 2) {
+          disputedAmt = amtMatches[1][1].replace(/,/g, '');
+        } else if (amtMatches.length === 1) {
+          disputedAmt = amtMatches[0][1].replace(/,/g, '');
+        }
+        if (disputedAmt !== "-") {
+          const num = parseFloat(disputedAmt.replace(/\./g, (m, offset, str) => offset === str.lastIndexOf('.') ? '.' : ''));
+          disputedAmt = isNaN(num) ? amtMatches[0][1] : num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        const rowKey = `${accNo}_${utr}_${disputedAmt}`;
+        if (seenKeys.has(rowKey)) continue;
+        seenKeys.add(rowKey);
+
+        rows.push({
+          srNo: idx++,
+          bank: fullBank,
+          accNo: accNo,
+          ifsc: ifsc,
+          utr: utr,
+          txDate: txDate,
+          disputed: disputedAmt
+        });
+      }
+
+      renderTable(rows);
+    }
+
+    function renderTable(rows) {
+      const tbody = document.getElementById('transferTableBody');
+      const counter = document.getElementById('recordCount');
+      counter.innerText = `${rows.length} Records Found`;
+
+      if (rows.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="py-12 text-center text-slate-400">
+              <i class="fa-regular fa-folder-open text-3xl mb-2 block"></i>
+              "Money Transfer to" ma koi record malyo nathi.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = rows.map(r => `
+        <tr class="hover:bg-slate-50 transition duration-150">
+          <td class="py-3.5 px-4 text-xs font-semibold text-slate-400">${r.srNo}</td>
+          <td class="py-3.5 px-4 font-bold text-slate-900">
+            <i class="fa-solid fa-building-columns text-blue-600 text-xs mr-1.5"></i>
+            ${r.bank}
+          </td>
+          <td class="py-3.5 px-4 font-mono font-bold text-slate-800">${r.accNo}</td>
+          <td class="py-3.5 px-4 font-mono font-semibold text-indigo-700 bg-indigo-50/70 px-2 py-0.5 rounded">${r.ifsc}</td>
+          <td class="py-3.5 px-4 font-mono text-slate-700 font-semibold">${r.utr}</td>
+          <td class="py-3.5 px-4 text-xs text-slate-500 whitespace-nowrap">${r.txDate}</td>
+          <td class="py-3.5 px-4 text-right font-bold text-red-600">₹ ${r.disputed}</td>
+        </tr>
+      `).join('');
+    }
+
+    function resetAllData() {
+      document.getElementById('pdfFileInput').value = "";
+      document.getElementById('ackNo').innerText = "-";
+      document.getElementById('victimName').innerText = "-";
+      document.getElementById('victimMobile').innerText = "-";
+      document.getElementById('categoryDesc').innerText = "-";
+      document.getElementById('totalFraudAmount').innerText = "₹ 0.00";
+      document.getElementById('totalLienAmount').innerText = "₹ 0.00";
+      document.getElementById('recordCount').innerText = "0 Records Found";
+      document.getElementById('loadingBox').classList.add('hidden');
+      document.getElementById('errorBox').classList.add('hidden');
+      
+      document.getElementById('transferTableBody').innerHTML = `
+        <tr>
+          <td colspan="7" class="py-12 text-center text-slate-400">
+            <i class="fa-regular fa-folder-open text-3xl mb-2 block"></i>
+            Koi data nathi. Krupya PDF upload karo.
+          </td>
+        </tr>
+      `;
+    }
+	
+  // એક્સટ્રેક્ટ થયેલા ડેટાને સ્ટોર કરવા માટે ગ્લોબલ ઓબ્જેક્ટ
+let extractedCaseData = {
+  ackNo: "-",
+  victimName: "-",
+  victimMobile: "-",
+  categoryDesc: "-",
+  totalFraudAmount: "₹ 0.00",
+  totalLienAmount: "₹ 0.00",
+  transfers: []
+};
+
+// parseComplaintReport ફંક્શનમાં આ વેલ્યુ અપડેટ કરો:
+function parseComplaintReport(text) {
+  const ack = text.match(/Acknowledgement\s*No\.?\s*[:\-]?\s*(\d+)/i);
+  const cat = text.match(/Category\s*of\s*Complaint\s*[:\-]?\s*([^\\n\\r]+)/i);
+  const subCat = text.match(/Sub\s*Category\s*of\s*Complaint\s*[:\-]?\s*([^\\n\\r]+)/i);
+  const name = text.match(/Name\s*[:\-]?\s*([A-Za-z\s]+?)(?:\\n|Gender|DOB|Date|Father)/i);
+  const mobile = text.match(/Mobile\s*[:\-]?\s*(\d{10})/i);
+
+  const fraudAmt = text.match(/Total\s*Fraudulent\s*Amount[^\d]*([\d,]+\.?\d*)/i);
+  const lienAmt = text.match(/Total\s*Lien\s*Amount[^\d]*([\d,]+\.?\d*)/i);
+
+  const c = cat ? cat[1].trim() : '';
+  const sc = subCat ? subCat[1].trim() : '';
+
+  extractedCaseData.ackNo = ack ? ack[1].trim() : '-';
+  extractedCaseData.victimName = name ? name[1].trim() : '-';
+  extractedCaseData.victimMobile = mobile ? mobile[1].trim() : '-';
+  extractedCaseData.categoryDesc = (c || sc) ? `${c} / ${sc}` : '-';
+  extractedCaseData.totalFraudAmount = fraudAmt ? `₹ ${fraudAmt[1]}` : '₹ 0.00';
+  extractedCaseData.totalLienAmount = lienAmt ? `₹ ${lienAmt[1]}` : '₹ 0.00';
+
+  document.getElementById('ackNo').innerText = extractedCaseData.ackNo;
+  document.getElementById('victimName').innerText = extractedCaseData.victimName;
+  document.getElementById('victimMobile').innerText = extractedCaseData.victimMobile;
+  document.getElementById('categoryDesc').innerText = extractedCaseData.categoryDesc;
+  document.getElementById('totalFraudAmount').innerText = extractedCaseData.totalFraudAmount;
+  document.getElementById('totalLienAmount').innerText = extractedCaseData.totalLienAmount;
+
+  extractMoneyTransferTrail(text);
+}
+
+// renderTable માં rows ને extractedCaseData માં સેવ કરો:
+function renderTable(rows) {
+  extractedCaseData.transfers = rows; // ડેટા સ્ટોર કર્યો
+  
+  const tbody = document.getElementById('transferTableBody');
+  const counter = document.getElementById('recordCount');
+  counter.innerText = `${rows.length} Records Found`;
+
+  if (rows.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="py-12 text-center text-slate-400">
+          <i class="fa-regular fa-folder-open text-3xl mb-2 block"></i>
+          "Money Transfer to" ma koi record malyo nathi.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => `
+    <tr class="hover:bg-slate-50 transition duration-150">
+      <td class="py-3.5 px-4 text-xs font-semibold text-slate-400">${r.srNo}</td>
+      <td class="py-3.5 px-4 font-bold text-slate-900">
+        <i class="fa-solid fa-building-columns text-blue-600 text-xs mr-1.5"></i>
+        ${r.bank}
+      </td>
+      <td class="py-3.5 px-4 font-mono font-bold text-slate-800">${r.accNo}</td>
+      <td class="py-3.5 px-4 font-mono font-semibold text-indigo-700 bg-indigo-50/70 px-2 py-0.5 rounded">${r.ifsc}</td>
+      <td class="py-3.5 px-4 font-mono text-slate-700 font-semibold">${r.utr}</td>
+      <td class="py-3.5 px-4 text-xs text-slate-500 whitespace-nowrap">${r.txDate}</td>
+      <td class="py-3.5 px-4 text-right font-bold text-red-600">₹ ${r.disputed}</td>
+    </tr>
+  `).join('');
+}
+
+// નવી વિન્ડોમાં view.html ખોલવા માટેનું ફંક્શન:
+function goToViewPage() {
+  if (!extractedCaseData.transfers || extractedCaseData.transfers.length === 0) {
+    if (extractedCaseData.ackNo === "-") {
+      alert("કૃપા કરીને પહેલા PDF અપલોડ કરો.");
+      return;
+    }
+  }
+  // localStorage માં ડેટા સેવ કરો
+  localStorage.setItem('cyberFraudPrintData', JSON.stringify(extractedCaseData));
+  
+  // view.html નવી ટેબમાં ખોલો
+  window.open('view.html', '_blank');
+}
+
+  </script>
+</body>
+</html>
